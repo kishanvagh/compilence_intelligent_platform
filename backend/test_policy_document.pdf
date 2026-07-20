@@ -1,0 +1,1 @@
+This is a mock policy document. GDPR requires organizations to encrypt all user personal data at rest using AES-256. MFA must be enabled for all administrator accounts. Incident reviews should happen quarterly.

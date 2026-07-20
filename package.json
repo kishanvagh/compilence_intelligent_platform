@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "bull": "^4.16.5",
+    "compression": "^1.8.1",
+    "express-basic-auth": "^1.2.1",
+    "redis": "^6.1.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^14.0.1",
+    "winston": "^3.19.0"
+  }
+}
