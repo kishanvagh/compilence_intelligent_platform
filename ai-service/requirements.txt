@@ -50,7 +50,6 @@ python-multipart==0.0.32
 PyYAML==6.0.3
 requests==2.34.2
 requests-toolbelt==1.0.0
-starlette==1.2.1
 tenacity==9.1.4
 tqdm==4.68.1
 typing-inspection==0.4.2

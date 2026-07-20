@@ -3,14 +3,9 @@ import sys
 from dotenv import load_dotenv
 
 # Resolve and load environment variables from backend/.env at startup
-backend_env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend/.env"))
-sys.stderr.write(f"Loading env from: {backend_env_path}\n")
-sys.stderr.write(f"Exists: {os.path.exists(backend_env_path)}\n")
+from dotenv import load_dotenv
 
-if os.path.exists(backend_env_path):
-    load_dotenv(backend_env_path)
-else:
-    load_dotenv()
+load_dotenv()
 
 sys.stderr.write(f"BYPASS_TLS value: {os.getenv('BYPASS_TLS')}\n")
 
