@@ -1,9 +1,16 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+
+// Ensure uploads/ directory exists (required on Render's ephemeral filesystem)
+const UPLOAD_DIR = "uploads";
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, UPLOAD_DIR);
   },
 
   filename(req, file, cb) {

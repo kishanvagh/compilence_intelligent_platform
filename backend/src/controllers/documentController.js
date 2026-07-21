@@ -63,6 +63,24 @@ export const uploadDocument = async (req, res) => {
   } catch (error) {
     console.error("Upload document error:", error.message);
     console.error("Full error details:", error.response?.data || error.stack);
+
+    // Detect AI service cold-start / unavailability
+    const isServiceDown =
+      error.code === "ECONNREFUSED" ||
+      error.code === "ECONNRESET" ||
+      error.message?.includes("stream has been aborted") ||
+      error.message?.includes("socket hang up") ||
+      error.message?.includes("did not come online") ||
+      error.response?.status === 502 ||
+      error.response?.status === 503;
+
+    if (isServiceDown) {
+      return res.status(503).json({
+        message:
+          "The AI service is starting up (cold start). Please wait 30–60 seconds and try uploading again.",
+      });
+    }
+
     res.status(500).json({
       message: error.message,
     });
