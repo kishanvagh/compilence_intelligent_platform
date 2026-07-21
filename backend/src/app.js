@@ -5,8 +5,30 @@ import { requestLogger, requestIdMiddleware } from "./middleware/requestLogger.j
 
 const app = express();
 
-// Security & parsing middleware
-app.use(cors());
+// CORS — explicitly allow the Vercel frontend and handle preflight OPTIONS requests
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : ["https://compilence-intelligent-platform.vercel.app"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Render health checks)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
+    credentials: true,
+    optionsSuccessStatus: 200, // Some browsers (IE11) choke on 204
+  })
+);
+
+// Explicitly handle preflight for all routes
+app.options("*", cors());
 app.use(compression());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
