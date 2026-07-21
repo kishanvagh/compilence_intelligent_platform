@@ -5,28 +5,32 @@ const FASTAPI_URL = process.env.FASTAPI_URL || "http://127.0.0.1:8000";
 
 const client = axios.create({
   baseURL: FASTAPI_URL,
-  timeout: 180000, // 3 minutes timeout for heavy Gemini/Qdrant batches
+  timeout: 300000, // 5 minutes — accounts for 3 min cold-start wait + processing time
 });
 
 /**
  * Pings the AI service health endpoint and waits for it to wake up.
- * Render free tier spins down after 15 min — this gives it time to cold-start.
+ * Render free tier spins down after 15 min — Python services can take 2-3 min to cold-start.
  * @param {number} maxWaitMs - Maximum ms to wait for the service to come online
  */
-const waitForAIService = async (maxWaitMs = 60000) => {
-  const pollInterval = 3000; // poll every 3 seconds
+const waitForAIService = async (maxWaitMs = 180000) => {
+  const pollInterval = 5000; // poll every 5 seconds
   const start = Date.now();
+  let attempts = 0;
 
   while (Date.now() - start < maxWaitMs) {
     try {
-      await axios.get(`${FASTAPI_URL}/`, { timeout: 5000 });
+      await axios.get(`${FASTAPI_URL}/`, { timeout: 8000 });
+      console.log(`AI service is online after ${Math.round((Date.now() - start) / 1000)}s`);
       return; // Service is up
     } catch {
-      console.log(`AI service not ready yet, retrying in ${pollInterval / 1000}s...`);
+      attempts++;
+      const elapsed = Math.round((Date.now() - start) / 1000);
+      console.log(`AI service not ready yet (${elapsed}s elapsed), retrying in ${pollInterval / 1000}s...`);
       await new Promise((r) => setTimeout(r, pollInterval));
     }
   }
-  throw new Error(`AI service did not come online within ${maxWaitMs / 1000}s. It may be starting up — please try again.`);
+  throw new Error(`AI service did not come online within ${maxWaitMs / 1000}s. It may be crashed — check Render AI service logs.`);
 };
 
 /**
