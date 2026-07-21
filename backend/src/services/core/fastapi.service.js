@@ -1,4 +1,5 @@
 import axios from "axios";
+import fs from "fs";
 
 const FASTAPI_URL = process.env.FASTAPI_URL || "http://127.0.0.1:8000";
 
@@ -8,7 +9,14 @@ const client = axios.create({
 });
 
 export const processPDF = async (filePath) => {
-  const response = await client.post("/ai/document/process", { filePath });
+  // Read file as binary and send as multipart upload so FastAPI can access it
+  const fileBuffer = fs.readFileSync(filePath);
+  const fileName = filePath.split(/[/\\]/).pop();
+  const formData = new FormData();
+  formData.append("file", new Blob([fileBuffer]), fileName);
+  const response = await client.post("/ai/document/process", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data;
 };
 
