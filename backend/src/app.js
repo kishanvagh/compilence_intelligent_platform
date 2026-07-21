@@ -27,8 +27,8 @@ app.use(
   })
 );
 
-// Explicitly handle preflight for all routes
-app.options("*", cors());
+// Explicitly handle preflight for all routes (Express 5 requires (.*) not *)
+app.options("/(.*)", cors());
 app.use(compression());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
