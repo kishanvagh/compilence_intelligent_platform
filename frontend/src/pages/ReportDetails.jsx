@@ -106,12 +106,18 @@ export const ReportDetails = () => {
             </h2>
             {topRisks && topRisks.length > 0 ? (
               <ul className="space-y-2">
-                {topRisks.map((risk, index) => (
-                  <li key={index} className="flex items-start gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-800">
-                    <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">{risk}</span>
-                  </li>
-                ))}
+                {topRisks.map((risk, index) => {
+                  // Handle both string and object formats
+                  const riskText = typeof risk === 'object' && risk !== null 
+                    ? risk.risk || risk.controlName || risk.businessRisk || JSON.stringify(risk)
+                    : String(risk);
+                  return (
+                    <li key={index} className="flex items-start gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-800">
+                      <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">{riskText}</span>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="text-slate-400 italic">No significant vulnerabilities or policy gaps were identified during evaluation.</p>
@@ -126,14 +132,20 @@ export const ReportDetails = () => {
             </h2>
             {recommendations && recommendations.length > 0 ? (
               <ul className="space-y-2">
-                {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-800">
-                    <div className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[9px] flex-shrink-0 mt-0.5">
-                      {index + 1}
-                    </div>
-                    <span className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">{rec}</span>
-                  </li>
-                ))}
+                {recommendations.map((rec, index) => {
+                  // Handle both string and object formats
+                  const recText = typeof rec === 'object' && rec !== null
+                    ? rec.recommendation || rec.recommendedFix || rec.title || JSON.stringify(rec)
+                    : String(rec);
+                  return (
+                    <li key={index} className="flex items-start gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-800">
+                      <div className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[9px] flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </div>
+                      <span className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">{recText}</span>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="text-slate-400 italic">No compliance remediation tasks are currently pending.</p>
