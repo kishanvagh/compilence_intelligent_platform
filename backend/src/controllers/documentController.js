@@ -34,17 +34,22 @@ export const uploadDocument = async (req, res) => {
       }))
     );
 
-    // Call FastAPI to generate embeddings and upsert to Qdrant
-    const embedResult = await embedDocument(document._id.toString(), chunksData);
-    
-    // Save Qdrant point IDs into MongoDB DocumentChunk records
-    if (embedResult && embedResult.mappings) {
-      for (const mapping of embedResult.mappings) {
-        await DocumentChunk.updateOne(
-          { documentId: document._id, chunkIndex: mapping.chunkIndex },
-          { $set: { qdrantPointId: mapping.qdrantPointId, isEmbedded: true } }
-        );
+    // Call FastAPI to generate embeddings and upsert to Qdrant (non-blocking - upload succeeds even if embedding fails)
+    try {
+      const embedResult = await embedDocument(document._id.toString(), chunksData);
+      
+      // Save Qdrant point IDs into MongoDB DocumentChunk records
+      if (embedResult && embedResult.mappings) {
+        for (const mapping of embedResult.mappings) {
+          await DocumentChunk.updateOne(
+            { documentId: document._id, chunkIndex: mapping.chunkIndex },
+            { $set: { qdrantPointId: mapping.qdrantPointId, isEmbedded: true } }
+          );
+        }
       }
+    } catch (embedError) {
+      console.error("Embedding step failed (upload will still complete):", embedError.message);
+      console.error("Full embed error details:", embedError.response?.data || embedError.stack);
     }
 
     res.status(201).json({
@@ -56,6 +61,8 @@ export const uploadDocument = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Upload document error:", error.message);
+    console.error("Full error details:", error.response?.data || error.stack);
     res.status(500).json({
       message: error.message,
     });
