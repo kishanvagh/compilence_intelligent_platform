@@ -17,8 +17,8 @@ export const Reports = () => {
 
   const getRiskColor = (risk) => {
     const r = (risk || 'low').toLowerCase();
-    if (r === 'high') return 'text-red-700 bg-red-50 dark:bg-red-950/20 dark:text-red-400 border border-red-200';
-    if (r === 'medium') return 'text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200';
+    if (r.includes('high')) return 'text-red-700 bg-red-50 dark:bg-red-950/20 dark:text-red-400 border border-red-200';
+    if (r.includes('medium') || r.includes('moderate')) return 'text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200';
     return 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200';
   };
 

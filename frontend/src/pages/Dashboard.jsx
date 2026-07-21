@@ -271,8 +271,8 @@ export const Dashboard = () => {
                       <td className="p-3 font-semibold text-slate-600 dark:text-slate-300">{r.framework}</td>
                       <td className="p-3 text-center">
                         <span className={`inline-block px-1.5 py-0.5 rounded font-bold ${
-                          r.report?.overallRisk?.toLowerCase() === 'high' ? 'bg-red-50 text-red-750 border border-red-200 dark:bg-red-950/10 dark:text-red-400 dark:border-red-900/30' :
-                          r.report?.overallRisk?.toLowerCase() === 'medium' ? 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/10 dark:text-amber-400 dark:border-amber-900/30' :
+                          (r.report?.overallRisk || '').toLowerCase().includes('high') ? 'bg-red-50 text-red-750 border border-red-200 dark:bg-red-950/10 dark:text-red-400 dark:border-red-900/30' :
+                          (r.report?.overallRisk || '').toLowerCase().includes('medium') ? 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/10 dark:text-amber-400 dark:border-amber-900/30' :
                           'bg-emerald-50 text-emerald-750 border border-emerald-200 dark:bg-emerald-950/10 dark:text-emerald-400 dark:border-emerald-900/30'
                         }`}>
                           {r.report?.overallRisk || 'Low'}
