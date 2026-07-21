@@ -78,7 +78,7 @@ if os.getenv("BYPASS_TLS", "false").lower() == "true":
     sys.stderr.write("Global SSLContext and create_default_context monkey-patches applied at startup.\n")
 
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from app.services.pdf_service import extract_text_from_pdf, extract_pages_from_pdf
@@ -164,18 +164,23 @@ def home():
         "message": "Compliance Intelligence AI Microservice is running."
     }
 
+class ProcessPDFBase64Request(BaseModel):
+    fileName: str
+    fileBase64: str
+
 @app.post("/ai/document/process")
-async def process_pdf_upload(file: UploadFile = File(...)):
+def process_pdf_base64(data: ProcessPDFBase64Request):
     """
-    Parses an uploaded PDF, cleans text, and splits it into character-based chunks.
-    Accepts file upload from the Node.js backend via multipart/form-data.
+    Parses a PDF from base64-encoded content, cleans text, and splits into chunks.
+    Accepts JSON with fileName and fileBase64 fields from the Node.js backend.
     """
     try:
-        # Save uploaded file to a temporary location
-        contents = await file.read()
+        # Decode base64 content to temporary file
+        import base64
+        file_bytes = base64.b64decode(data.fileBase64)
         suffix = ".pdf"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            tmp.write(contents)
+            tmp.write(file_bytes)
             tmp_path = tmp.name
         
         raw_text = extract_text_from_pdf(tmp_path)
@@ -184,52 +189,6 @@ async def process_pdf_upload(file: UploadFile = File(...)):
         
         # Clean up temp file
         os.unlink(tmp_path)
-        
-        # Split pages into chunks
-        chunks = []
-        chunk_index = 0
-        
-        if pages:
-            for page in pages:
-                page_chunks = chunk_text(page["text"])
-                for p_chunk in page_chunks:
-                    chunks.append({
-                        "chunkIndex": chunk_index,
-                        "pageNumber": page["pageNumber"],
-                        "text": p_chunk
-                    })
-                    chunk_index += 1
-        else:
-            doc_chunks = chunk_text(cleaned)
-            for chunk in doc_chunks:
-                chunks.append({
-                    "chunkIndex": chunk_index,
-                    "pageNumber": 1,
-                    "text": chunk
-                })
-                chunk_index += 1
-                
-        return {
-            "status": "success",
-            "extractedText": cleaned,
-            "chunks": chunks
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Keep the old JSON-based endpoint for backward compatibility
-@app.post("/ai/document/process-legacy")
-def process_pdf(data: ProcessRequest):
-    """
-    Legacy: Parses a PDF by file path (only works when backend and AI service share filesystem).
-    """
-    if not os.path.exists(data.filePath):
-        raise HTTPException(status_code=404, detail=f"File not found: {data.filePath}")
-        
-    try:
-        raw_text = extract_text_from_pdf(data.filePath)
-        cleaned = clean_text(raw_text)
-        pages = extract_pages_from_pdf(data.filePath)
         
         # Split pages into chunks
         chunks = []

@@ -9,13 +9,13 @@ const client = axios.create({
 });
 
 export const processPDF = async (filePath) => {
-  // Read file as binary and send as multipart upload so FastAPI can access it
+  // Read file as base64 and send via JSON (avoids FormData/Blob compatibility issues)
   const fileBuffer = fs.readFileSync(filePath);
+  const base64Content = fileBuffer.toString("base64");
   const fileName = filePath.split(/[/\\]/).pop();
-  const formData = new FormData();
-  formData.append("file", new Blob([fileBuffer]), fileName);
-  const response = await client.post("/ai/document/process", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+  const response = await client.post("/ai/document/process", {
+    fileName,
+    fileBase64: base64Content,
   });
   return response.data;
 };
